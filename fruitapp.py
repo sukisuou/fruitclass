@@ -8,6 +8,9 @@ import plotly.express as px
 from PIL import Image
 from sklearn.preprocessing import LabelEncoder
 
+# streamlit run fruitclass.py
+import streamlit as st
+
 # load model 
 with open('treemodel.pkl', 'rb') as file:
     treemodel = pickle.load(file)
@@ -34,8 +37,6 @@ target_column = 'fruit_name'
 X = df.drop(target_column, axis=1)
 Y = df[target_column]
 
-# streamlit run fruitclass.py
-import streamlit as st
 
 # Page configuration
 st.set_page_config(layout="wide")
@@ -48,7 +49,7 @@ importances_df = pd.DataFrame({
 })
 
 # Sidebar setup
-image_sidebar = Image.open('apple.png')
+image_sidebar = Image.open('fruits.png')
 st.sidebar.image(image_sidebar, use_container_width=True)
 st.sidebar.header('Fruit Features')
 
@@ -73,7 +74,7 @@ def get_user_input():
     return user_data
 
 # Big one in the middle
-image_banner = Image.open('apple.png')
+image_banner = Image.open('fruits.png')
 st.image(image_banner, use_container_width=True)
 
 # Centered title
