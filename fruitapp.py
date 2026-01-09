@@ -54,7 +54,7 @@ def get_user_input():
     taste = st.sidebar.selectbox('Taste', taste_le.classes_)
     size = st.sidebar.number_input('Size (cm)', min_value=0.0, max_value=30.0, step=0.1, value=10.0)
     weight = st.sidebar.number_input('Weight (g)', min_value=0.0, max_value=3300.0, step=0.1, value=1000.0)
-    price = st.sidebar.number_input('Average Price (RM)', min_value=0.0, max_value=8.0, step=0.1, value=5.0)
+    price = st.sidebar.number_input('Average Price (₹)', min_value=0.0, max_value=165.0, step=0.1, value=5.0)
 
     user_data = {
         'shape': shape_le.transform([shape])[0],
@@ -62,7 +62,7 @@ def get_user_input():
         'taste': taste_le.transform([taste])[0],
         'size (cm)': size,
         'weight (g)': weight,
-        'avg_price (₹)': price * 22.15
+        'avg_price (₹)': price
     }
     
     return user_data
