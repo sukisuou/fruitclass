@@ -149,7 +149,6 @@ pruned_pred = pruned_tree.predict(X_test)
 print(f"Pruned Tree Accuracy: {accuracy_score(pruned_pred, Y_test)}")
 
 # --- Deploy with Streamlit ---
-%%writefile fruitclass.py
 import numpy as np
 import pandas as pd
 import pickle
