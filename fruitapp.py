@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 import pickle
-import kagglehub
 import os
 import plotly.express as px
 from PIL import Image
@@ -14,6 +13,9 @@ import streamlit as st
 # load model 
 with open('treemodel.pkl', 'rb') as file:
     treemodel = pickle.load(file)
+# load dataset
+with open('dataset.pkl', 'rb') as file:
+    df = pickle.load(file)
 
 # load encoders
 with open('shape_le.pkl', 'rb') as file:
@@ -24,14 +26,6 @@ with open('taste_le.pkl', 'rb') as file:
     taste_le = pickle.load(file)
 with open('target_le.pkl', 'rb') as file:
     target_le = pickle.load(file)
-
-path = kagglehub.dataset_download("pranavkapratwar/fruit-classification")
-for file in os.listdir(path):
-    if file.endswith(".csv"):
-        dataset_path = os.path.join(path, file)
-        break
-print("Using dataset file:", dataset_path)
-df = pd.read_csv(dataset_path)
 
 target_column = 'fruit_name'
 X = df.drop(target_column, axis=1)
