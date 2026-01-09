@@ -72,7 +72,7 @@ image_banner = Image.open('fruits.png')
 st.image(image_banner, use_container_width=True)
 
 # Centered title
-st.markdown("<h1 style='text-align: center;'>Fruit Price Prediction App</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>Fruit Name Prediction App</h1>", unsafe_allow_html=True)
 
 # Split layout into two columns
 left_col, right_col = st.columns(2)
