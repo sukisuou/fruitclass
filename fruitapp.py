@@ -2,12 +2,37 @@
 import numpy as np
 import pandas as pd
 import pickle
+import kagglehub
+import os
 import plotly.express as px
 from PIL import Image
+from sklearn.preprocessing import LabelEncoder
 
 # load model 
 with open('treemodel.pkl', 'rb') as file:
     treemodel = pickle.load(file)
+
+# load encoders
+with open('shape_le.pkl', 'rb') as file:
+    shape_le = pickle.load(file)
+with open('color_le.pkl', 'rb') as file:
+    color_le = pickle.load(file)
+with open('taste_le.pkl', 'rb') as file:
+    taste_le = pickle.load(file)
+with open('target_le.pkl', 'rb') as file:
+    target_le = pickle.load(file)
+
+path = kagglehub.dataset_download("pranavkapratwar/fruit-classification")
+for file in os.listdir(path):
+    if file.endswith(".csv"):
+        dataset_path = os.path.join(path, file)
+        break
+print("Using dataset file:", dataset_path)
+df = pd.read_csv(dataset_path)
+
+target_column = 'fruit_name'
+X = df.drop(target_column, axis=1)
+Y = df[target_column]
 
 # streamlit run fruitclass.py
 import streamlit as st
@@ -16,52 +41,43 @@ import streamlit as st
 st.set_page_config(layout="wide")
 
 # trained-model - treemodel
-# feature importance - importances
+# feature importance
 importances_df = pd.DataFrame({
-    'Variables': feature_names,
-    'Feature Importance Score': importances
+    'Variables': X.columns,
+    'Feature Importance Score': treemodel.feature_importances_
 })
 
 # Sidebar setup
-image_sidebar = Image.open('apple.png')  # Replace with your image file
-st.sidebar.image(image_sidebar, use_column_width=True)
-st.sidebar.header('Vehicle Features')
+image_sidebar = Image.open('apple.png')
+st.sidebar.image(image_sidebar, use_container_width=True)
+st.sidebar.header('Fruit Features')
 
 # Feature selection on sidebar
 def get_user_input():
-    horsepower = st.sidebar.number_input('Horsepower (No)', min_value=0, max_value=1000, step=1, value=300)
-    torque = st.sidebar.number_input('Torque (No)', min_value=0, max_value=1500, step=1, value=400)
-    
-    make = st.sidebar.selectbox('Make', ['Aston Martin', 'Audi', 'BMW', 'Bentley', 'Ford', 'Mercedes-Benz', 'Nissan'])
-    body_size = st.sidebar.selectbox('Body Size', ['Compact', 'Large', 'Midsize'])
-    body_style = st.sidebar.selectbox('Body Style', [
-        'Cargo Minivan', 'Cargo Van', 'Convertible', 'Convertible SUV', 'Coupe', 'Hatchback', 
-        'Passenger Minivan', 'Passenger Van', 'Pickup Truck', 'SUV', 'Sedan', 'Wagon'
-    ])
-    engine_aspiration = st.sidebar.selectbox('Engine Aspiration', [
-        'Electric Motor', 'Naturally Aspirated', 'Supercharged', 'Turbocharged', 'Twin-Turbo', 'Twincharged'
-    ])
-    drivetrain = st.sidebar.selectbox('Drivetrain', ['4WD', 'AWD', 'FWD', 'RWD'])
-    transmission = st.sidebar.selectbox('Transmission', ['automatic', 'manual'])
-    
+    shape = st.sidebar.selectbox('Shape', shape_le.classes_)
+    color = st.sidebar.selectbox('Color', color_le.classes_)
+    taste = st.sidebar.selectbox('Taste', taste_le.classes_)
+    size = st.sidebar.number_input('Size (cm)', min_value=0.0, max_value=30.0, step=0.1, value=10.0)
+    weight = st.sidebar.number_input('Weight (g)', min_value=0.0, max_value=3300.0, step=0.1, value=1000.0)
+    price = st.sidebar.number_input('Average Price (RM)', min_value=0.0, max_value=8.0, step=0.1, value=5.0)
+
     user_data = {
-        'Horsepower_No': horsepower,
-        'Torque_No': torque,
-        f'Make_{make}': 1,
-        f'Body Size_{body_size}': 1,
-        f'Body Style_{body_style}': 1,
-        f'Engine Aspiration_{engine_aspiration}': 1,
-        f'Drivetrain_{drivetrain}': 1,
-        f'Transmission_{transmission}': 1,
+        'shape': shape_le.transform([shape])[0],
+        'color': color_le.transform([color])[0],
+        'taste': taste_le.transform([taste])[0],
+        'size (cm)': size,
+        'weight (g)': weight,
+        'avg_price (₹)': price * 22.15
     }
+    
     return user_data
 
-# Top banner
-image_banner = Image.open('apple.png')  # Replace with your image file
-st.image(image_banner, use_column_width=True)
+# Big one in the middle
+image_banner = Image.open('apple.png')
+st.image(image_banner, use_container_width=True)
 
 # Centered title
-st.markdown("<h1 style='text-align: center;'>Vehicle Price Prediction App</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>Fruit Price Prediction App</h1>", unsafe_allow_html=True)
 
 # Split layout into two columns
 left_col, right_col = st.columns(2)
@@ -82,7 +98,7 @@ with left_col:
         title="Feature Importance",
         labels={'Feature Importance Score': 'Importance', 'Variable': 'Feature'},
         text='Feature Importance Score',
-        color_discrete_sequence=['#48a3b4']  # Custom bar color
+        color_discrete_sequence=['#48a3b4']
     )
     fig.update_layout(
         xaxis_title="Feature Importance Score",
@@ -94,7 +110,7 @@ with left_col:
 
 # Right column: Prediction Interface
 with right_col:
-    st.header("Predict Vehicle Price")
+    st.header("Predict Fruit Name")
     
     # User inputs from sidebar
     user_data = get_user_input()
@@ -105,23 +121,12 @@ with right_col:
         return np.array([list(input_data.values())])
 
     # Feature list (same order as used during model training)
-    features = [
-        'Horsepower_No', 'Torque_No', 'Make_Aston Martin', 'Make_Audi', 'Make_BMW', 'Make_Bentley',
-        'Make_Ford', 'Make_Mercedes-Benz', 'Make_Nissan', 'Body Size_Compact', 'Body Size_Large',
-        'Body Size_Midsize', 'Body Style_Cargo Minivan', 'Body Style_Cargo Van', 
-        'Body Style_Convertible', 'Body Style_Convertible SUV', 'Body Style_Coupe', 
-        'Body Style_Hatchback', 'Body Style_Passenger Minivan', 'Body Style_Passenger Van',
-        'Body Style_Pickup Truck', 'Body Style_SUV', 'Body Style_Sedan', 'Body Style_Wagon',
-        'Engine Aspiration_Electric Motor', 'Engine Aspiration_Naturally Aspirated',
-        'Engine Aspiration_Supercharged', 'Engine Aspiration_Turbocharged',
-        'Engine Aspiration_Twin-Turbo', 'Engine Aspiration_Twincharged', 
-        'Drivetrain_4WD', 'Drivetrain_AWD', 'Drivetrain_FWD', 'Drivetrain_RWD', 
-        'Transmission_automatic', 'Transmission_manual'
-    ]
+    features = X.columns.tolist()
 
     # Predict button
     if st.button("Predict"):
         input_array = prepare_input(user_data, features)
         prediction = treemodel.predict(input_array)
-        st.subheader("Predicted Price")
-        st.write(f"${prediction[0]:,.2f}")
+        st.subheader("Predicted Fruit Name")
+        pred_fruit = target_le.inverse_transform(prediction)[0]
+        st.write(pred_fruit)

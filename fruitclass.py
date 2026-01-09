@@ -154,3 +154,13 @@ import pickle
 # save trained model
 with open('treemodel.pkl', 'wb') as file:
     pickle.dump(treemodel, file)
+
+# save encoders too
+with open('shape_le.pkl', 'wb') as file:
+    pickle.dump(label_encoders['shape'], file)
+with open('color_le.pkl', 'wb') as file:
+    pickle.dump(label_encoders['color'], file)
+with open('taste_le.pkl', 'wb') as file:
+    pickle.dump(label_encoders['taste'], file)
+with open('target_le.pkl', 'wb') as file:
+    pickle.dump(target_le, file)
